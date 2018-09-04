@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-#define MAX 256
+#define MAX_N 256
 
 typedef int Number;
 

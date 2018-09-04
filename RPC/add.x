@@ -1,4 +1,4 @@
-const MAX = 256;
+const MAX_N = 256;
 typedef int Number;
 
 

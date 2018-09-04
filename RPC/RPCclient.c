@@ -4,7 +4,7 @@
 
 int main(int argc, char** argv){
 	CLIENT* clientHandle;
-	char* serverName = "176.16.2.2";
+	char* serverName = "127.0.0.1";
 	addargs numbers;
 	Number* result;
 

@@ -5,6 +5,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h> 
+#include <string.h>
+#include "operation.h"
+
+#define BUF_SIZE 256
 
 void error(char *msg) {
     perror(msg);
@@ -12,14 +16,14 @@ void error(char *msg) {
 }
 
 int main (int argc, char **argv) {
-
-	int listenfd, connfd, nbuf, i;
+	long connfd;
+	int listenfd, nbuf, i;
 	int clilen;
 	short port, maxcon = 5;
 
 	struct sockaddr_in cliaddr, servaddr;
 
-	char buf[256];
+	char buf[BUF_SIZE], answer[BUF_SIZE];
 	
 	if (argc < 2) {
 		printf("Please, specify the port number.");
@@ -40,13 +44,14 @@ int main (int argc, char **argv) {
 
 	listen(listenfd, maxcon);
 	for (i = 1;;i++) {
-		printf("Request %d:\n", i);
+		printf("Iteractive Server waiting for request...\n");
 		clilen = sizeof(cliaddr);
 		connfd = accept (listenfd, (struct sockaddr *) &cliaddr, &clilen);
 		int c = 0;
 		while ( (nbuf = recv(connfd, buf, sizeof(buf), 0)) > 0) {
-			printf("Received message: %s\n", buf);
-			send(connfd, buf, nbuf, 0);
+			printf("Received message from client %lu: %s\n", connfd, buf);
+			add(buf, answer);
+			send(connfd, answer, strlen(answer), 0);
 		}
 		if (nbuf < 0) error("Read error");
 		close(connfd);

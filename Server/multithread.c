@@ -6,9 +6,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h> 
 #include <pthread.h>
+#include <sys/syscall.h>
+#include <string.h>
+
+#include "operation.h"
 
 #define NUM_THREADS 1
-#define BUF_SIZSE 256
+#define BUF_SIZE 256
 
 void error(char *msg) {
     perror(msg);
@@ -17,18 +21,18 @@ void error(char *msg) {
 
 void *job(void *con) {
 	long nbuf;
-	char buf[BUF_SIZSE];
+	char buf[BUF_SIZE], answer[BUF_SIZE];
 	long connfd = (long) con;
 
 	while ((nbuf = recv(connfd, buf, sizeof(buf), 0)) > 0) {
-		printf("Received message from client %ld: %s\n", connfd, buf);
-		send(connfd, buf, nbuf, 0);
+		printf("Received message from client %lu: %s\n", connfd, buf);
+		add(buf, answer);
+		send(connfd, answer, strlen(answer), 0);
 	}
 
 	if (nbuf < 0) error("Read error");
 
 	close(connfd);
-
 	pthread_exit(NULL);
 } 
 
@@ -40,7 +44,7 @@ int main (int argc, char **argv) {
 	short port, maxcon = 5;
 
 	struct sockaddr_in servaddr, cliaddr;
-	char buf[BUF_SIZSE];
+	char buf[BUF_SIZE];
 	
 	if (argc < 2) {
 		printf("Please, specify the port number.");
@@ -61,12 +65,10 @@ int main (int argc, char **argv) {
 
 	listen(listenfd, maxcon);
 	for (i = 0;;i++) {
-		printf("Waiting for request...\n");
+		printf("Multithread Server waiting for request...\n");
 		clilen = sizeof(cliaddr);
 		connfd = accept(listenfd, (struct sockaddr *) &cliaddr, &clilen);
-		printf("Received request from %ld:\n", connfd);
-		if ((tid = pthread_create(&thread, NULL, job, (void *)connfd ))) {
+		if ((tid = pthread_create(&thread, NULL, job, (void *)connfd)))
 			error("Error to create Thread");
-		}
 	}
 }
